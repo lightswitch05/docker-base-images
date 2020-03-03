@@ -1,24 +1,3 @@
-.job_template: &job_template
-  runs-on: ubuntu-latest
-  steps:
-    - name: echo env vars
-      run: printenv
-    - name: Checkout Repo
-    - uses: actions/checkout@v2
-    - name: Enable QEMU
-      if: contains(env.IMAGE}, 'qemu')
-      run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
-#    - name: Build Images
-#      run: |
-#        echo "Building $IMAGE"
-#        cd "${BASEDIR:-.}/${CIRCLE_JOB}"
-#        docker build --pull -t ${IMAGE} .
-#    - name: Tag and push all images
-#      if: github.event_name != 'pull_request'
-#      run: |
-#        docker login --username=${{ secrets.DOCKERHUB_USER }} --password=${{ secrets.DOCKERHUB_PASS }}
-#        ./tag-and-push.sh ${IMAGE}
-
 name: Image Builds
 env:
   HUB_NAMESPACE: pihole
@@ -31,8 +10,26 @@ on:
     - cron: '30 2 * * 0'
 
 jobs:
-  debian-base:
-    <<: *job_template
+  debian-base: &job_template
+    runs-on: ubuntu-latest
+    steps:
+      - name: echo env vars
+        run: printenv
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Enable QEMU
+        if: contains(env.IMAGE}, 'qemu')
+        run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - name: Build Images
+        run: |
+          echo "Building $IMAGE"
+          cd "${BASEDIR:-.}/${CIRCLE_JOB}"
+          docker build --pull -t ${IMAGE} .
+      - name: Tag and push all images
+        if: github.event_name != 'pull_request'
+        run: |
+          docker login --username=${{ secrets.DOCKERHUB_USER }} --password=${{ secrets.DOCKERHUB_PASS }}
+          ./tag-and-push.sh ${IMAGE}
     env:
       IMAGE: debian-base:latest
 
