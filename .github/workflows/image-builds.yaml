@@ -1,38 +1,79 @@
-name: Image Builds
+.job_template: &job_template
+  runs-on: ubuntu-latest
+  steps:
+    - name: echo env vars
+      run: printenv
+    - name: Checkout Repo
+    - uses: actions/checkout@v2
+    - name: Enable QEMU
+      if: contains(env.IMAGE}, 'qemu')
+      run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+#    - name: Build Images
+#      run: |
+#        echo "Building $IMAGE"
+#        cd "${BASEDIR:-.}/${CIRCLE_JOB}"
+#        docker build --pull -t ${IMAGE} .
+#    - name: Tag and push all images
+#      if: github.event_name != 'pull_request'
+#      run: |
+#        docker login --username=${{ secrets.DOCKERHUB_USER }} --password=${{ secrets.DOCKERHUB_PASS }}
+#        ./tag-and-push.sh ${IMAGE}
 
+name: Image Builds
+env:
+  HUB_NAMESPACE: pihole
+  #JOB_ID: ${{env.job.id}}
 on:
+  pull_request:
   push:
   schedule:
     # 2:30am UTC every Sunday, has no particular meaning
     - cron: '30 2 * * 0'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        image:
-          - debian-base
-          - ftl-build_aarch64
-          - ftl-build_arm
-          - ftl-build_arm-qemu
-          - ftl-build_armhf
-          - ftl-build_x86_32
-          - ftl-build_x86_64
-          - ftl-build_x86_64-musl
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+  debian-base:
+    <<: *job_template
+    env:
+      IMAGE: debian-base:latest
 
-      - name: Build Images
-        run: |
-          docker run --rm --privileged multiarch/qemu-user-static:register --reset
-          docker-compose pull ${{ matrix.image }}
-          docker-compose build --pull ${{ matrix.image }}
+  arm:
+    <<: *job_template
+    env:
+      BASEDIR: ftl-build
+      IMAGE: ftl-build
 
-      #- name: Docker login
-      #  run: sudo docker login --username=${{ secrets.DOCKERHUB_USER }} --password=${{ secrets.DOCKERHUB_PASS }}
+  arm-qemu:
+    <<: *job_template
+    env:
+      BASEDIR: ftl-build
+      IMAGE: ftl-build
 
-      #- name: Tag and push all images
-      #  run: ./tag-and-push.sh
+  armhf:
+    <<: *job_template
+    env:
+      BASEDIR: ftl-build
+      IMAGE: ftl-build
+
+  aarch64:
+    <<: *job_template
+    env:
+      BASEDIR: ftl-build
+      IMAGE: ftl-build
+
+  x86_64:
+    <<: *job_template
+    env:
+      BASEDIR: ftl-build
+      IMAGE: ftl-build
+
+  x86_64-musl:
+    <<: *job_template
+    env:
+      BASEDIR: ftl-build
+      IMAGE: ftl-build
+
+  x86_32:
+    <<: *job_template
+    env:
+      BASEDIR: ftl-build
+      IMAGE: ftl-build
