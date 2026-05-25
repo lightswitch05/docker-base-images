@@ -58,7 +58,7 @@ jobs:
       cache-scope: build
       cache-mode: max
       context: ftl-build
-      fail-fast: true
+      fail-fast: false
       output: image
       target: test
       platforms: linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64,linux/riscv64
@@ -81,7 +81,7 @@ jobs:
       cache-scope: build
       cache-mode: max
       context: ftl-build
-      fail-fast: true
+      fail-fast: false
       output: image
       target: build
       platforms: linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64,linux/riscv64
